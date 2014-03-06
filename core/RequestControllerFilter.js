@@ -12,13 +12,21 @@ var queryUrl = require("url"),
 var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg; 
 
 var requestController={
+
+	auto_requestResultConfig : null,
+	auto_appConfig : null,
+	
 	_urlData : {},
 	_pathData : {},
 	//_paramData : {},
 	//_pathParamData : {},
-
-	auto_staticFileService : null,
- 	awake : function(AppContext){
+	injectionType : 'filter', //属于拦截服务
+	filterValue : null,	//拦截的url 起始标识
+	order : 1,
+  	awake : function(AppContext){
+		
+		this.filterValue = this.auto_appConfig.webServiceFilters;
+		
 		var $this=this;
 		AppContext.findInjectionOfType(['controller'],null,function(container){
 			$this.register(container);
@@ -202,13 +210,14 @@ var requestController={
 			var controller = obj.controller;
 			var params = this.getParamNames(controller);
 			var paramsMetadata = this.getParamMetadata(params,url);
-			obj.paramsMetadata = paramsMetadata;
+			obj.paramsMetadata = paramsMetadata,
+				filter = container.filter ;
   			for(var i in obj.methods){
 				var method = obj.methods[i];				
-				var key = this.getKey(method,url);					
+				var key = this.getKey(method,url,filter);					
 				
 				if(paramsMetadata.pathParamLength!=0 ){ //有路径变量
-					key = this.getKey(method,paramsMetadata.checkPath);
+					key = this.getKey(method,paramsMetadata.checkPath,filter);
 					var groupNum = paramsMetadata.sawGroup.length;
 					this.injectionPathMap(groupNum,key,obj);
 				}else{
@@ -220,19 +229,33 @@ var requestController={
 					
 		}		
  	},	
-	filter : function(request, response,AppContext){
-		
-		var _url = request.url;
-		if( _url == '/favicon.ico'){
-			return;
+		//过滤成功后执行的回调
+	filterSuccessCallback : function(req,res,result){
+		res.writeHead(200, {"Content-Type": "text/plain;charset=utf-8"});
+
+		if(result!= this.auto_requestResultConfig.success ){
+			if(typeof result == 'string'){
+				res.write(result);
+			}else if(typeof result == 'object' 
+				|| Array.isArray(result)
+			){
+				try{
+					res.write(JSON.stringify(result));
+				}catch(e){
+					res.writeHead(500, {"Content-Type": "text/plain;charset=utf-8"});
+					_error(e.stack,e);
+					res.write(e.stack);
+ 				}			
+			}else{
+				res.write(result);
+			}		
 		}
-		
-		if(this.auto_staticFileService.getFile(request, response)){
-			debug("read static file : ",'[',_url,']');
-			return;
-		}
-		
-		_url = _path.normalize(_url);
+		debug("controller filter : ",'[',req.url,']');
+	},
+	
+	filterProcessor : function(request, response,AppContext){		
+ 
+		var _url = _path.normalize(request.url);
 		var method = request.method	,
 			urlObj = queryUrl.parse(_url),
 			path = urlObj.pathname.trim(),
@@ -255,7 +278,7 @@ var requestController={
 			
 		if(_filter==null ){
 			_error('not find controller : ' ,key);			
-			return;
+			return this.auto_requestResultConfig.failuer;
 		} 
 		
 		var  queryParams = _filter.queryParams;
@@ -265,7 +288,7 @@ var requestController={
 			var flag = queryParams[key];
 			if(queryObj[key]==null && flag){				
 				_error(' params is not : ',queryParams,'[',_url,']','[',_filter.callObjId,']');
-				return;
+				return this.auto_requestResultConfig.failuer;
 			}
 		}
 		//param is right			
@@ -315,7 +338,14 @@ var requestController={
 		}
 		//debug('callObjId ==============',callObjId);
 		//debug('callParams ==============',callParams);
-		return controller.apply(callObj,callParams);
+		var result = controller.apply(callObj,callParams);
+		
+		//返回假成功
+		if(result == null){
+			return this.auto_requestResultConfig.success;
+		}
+		
+		return result;
 		 		
 	},
 	
@@ -433,24 +463,7 @@ var requestController={
 
 		this._urlData[key]=controller;
 	},
-/*
-	injectionPathAndParamMap : function(groupNum,key,controller){
-		if(this._pathParamData[groupNum]==null){
-			this._pathParamData[groupNum] = {};
-		}
-		this._pathParamData[groupNum][key]!=null
-		&& _error("重复注册 REST injectionPathAndParamMap 处理器 : " ,key);
-		debug("injectionPathAndParamMap : ",key);
-		this._pathParamData[groupNum][key]=controller;
-	},
-	injectionParamMap : function(key,controller){
-		this._paramData[key]!=null
-		&& _error("重复注册 REST injectionParamMap 处理器 : " ,key);
-		debug("injectionParamMap : ",key);
-
-		this._paramData[key]=controller;
-	},	
-*/ 
+ 
 	getMapSize : function(map){
 		var num=0;
 		for(var i in map) num++;
@@ -464,12 +477,13 @@ var requestController={
 		 result = []
 		return result
 	},
-	getKey : function(method,url){
+	getKey : function(method,url,filter){
 		url=_path.normalize(url);
  		if(url.lastIndexOf('/') == url.length && url.length!=1){
 			url =  key.substring(0, url.length - 1);
 		}
-		return method.toLowerCase().trim() + "_"+ url.toLowerCase().trim();		
+		if(filter==null) filter='';
+		return method.toLowerCase().trim() + "_"+  filter +url.toLowerCase().trim();		
 	},
 };
 

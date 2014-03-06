@@ -3,6 +3,7 @@
  * @deprecated blog: cnblogs.com/solq
  * */
 var appConfig={
+	author: 'solq',
 	/**db config**/
 	dbHost : '127.0.0.1',
 	dbPort : 9977 , 
@@ -22,9 +23,14 @@ var appConfig={
 	
 	/**web config**/	
 	startCacheStatic : true,
-	staticPath :  ['\\static'],
+	/**controller filter config**/	
+	webServiceFilters : ['\\ws','\\api'],
+	staticFileFilters : ['\\static','\\abc'],
 	/**auto scan config**/	
 	scan :{
+		'./core' : {
+			injectionType : 'core'
+		},
 		'./config' : {
 			injectionType : 'config'
 		},
@@ -35,9 +41,14 @@ var appConfig={
 			injectionType : 'service'
 		},
 		'./ws' : {
+			filter : '\\ws', //url 服务 过滤器
 			injectionType : 'controller',
 			//include : [],
 			exclude : ['./ws/test/test1.js']
+		},
+		'./api' : {
+			filter : '\\api', //url 服务 过滤器
+			injectionType : 'controller'
 		}
 	} 
 };

@@ -9,8 +9,6 @@ var http = require("http"),
 	webHelper = require('./core/util/WebHelper.js'),
 	debug = require('./core/util/debug.js').debug,
 	_error = require('./core/util/debug.js').error,
-	requestController = require('./core/RequestController.js'),
-	AOP = require('./core/Aop.js'),
 	AppContext={
 		getKey : function(key){
 			key = key.trim();
@@ -116,10 +114,6 @@ var _init = function(){
 // init run awake > start > postConstruct 
 
 debug( "start injection : =============================================");
-//这三个容器应该没有 injectionType 不需要被查找
-AppContext.addContainer('appContext',AppContext);
-AppContext.addContainer('requestController',requestController);
-AppContext.addContainer('aop',AOP);
 
 webHelper.scanProcess(appConfig.scan,'.js',function(filePath,target){
 	var container=require(filePath); 
@@ -133,6 +127,12 @@ webHelper.scanProcess(appConfig.scan,'.js',function(filePath,target){
 		}
 		container.injectionType = injectionType;
 	}
+	
+	//add filter 过滤器
+	if(target.filter!=null){
+		container.filter = target.filter;
+	}
+	
 	var injectionType = container.injectionType ;
 	var id=_injection(filePath,container).id;
  	debug( "injection : ",'[',injectionType,']','[',id,']', filePath);
@@ -156,6 +156,8 @@ debug( "start init : =============================================");
 _init();
 debug( "end init : =============================================");
 
+var requestFilterProcessor = AppContext.findContainer('requestFilterProcessor');
+
 function errorRequest(response,e){
 	response.writeHead(500, {"Content-Type": "text/plain;charset=utf-8"});
 	_error(e.stack,e);
@@ -165,29 +167,11 @@ function errorRequest(response,e){
 
 http.createServer(function(request, response) {
 
-	var result=null;
 	try{
-		 result=requestController.filter(request, response,AppContext);
+		 requestFilterProcessor.filter(request, response,AppContext);
 	}catch(e){	
 		errorRequest(response,e);
 		return;
-	}
-	//ws result
-	if(result!=null){
-		response.writeHead(200, {"Content-Type": "text/plain;charset=utf-8"});
-		if(typeof result == 'string'){
-			response.write(result);
-		}else if(typeof result == 'object' 
-			|| Array.isArray(result)
-		){
-			try{
-				response.write(JSON.stringify(result));
-			}catch(e){
-				errorRequest(response,e);
-			}			
-		}else{
-			response.write(result);
-		}		
 	}
 	
 	response.end(); 

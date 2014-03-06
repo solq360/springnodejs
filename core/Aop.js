@@ -9,7 +9,7 @@ module.exports = {
 
 	awake : function(AppContext){
 		var $this=this;
-		AppContext.findInjectionOfType(null,null,function(container){
+		AppContext.findInjectionOfType(['aop'],null,function(container){
 			$this.register(container,AppContext);
 		});
 	},

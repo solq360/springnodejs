@@ -7,17 +7,22 @@ var fs = require('fs'),
 	_path = require('path'),
 	_error = require('../core/util/debug.js').error;
 	debug = require('../core/util/debug.js').debug,
- 	webHelper = require('../core/util/WebHelper.js'),
-	CacheQueue = require('../core/CacheQueue.js'),
+ 	CacheQueue = require('../core/CacheQueue.js'),
 	zlib = require("zlib");
 
 	
 module.exports = {
 	auto_mime : null,
 	auto_appConfig : null,
+	auto_requestResultConfig : null,
 	CacheQueue : null,
+	injectionType : 'filter',
+ 	filterValue : null,	//拦截的url 起始标识
+	order : 0,
  	//http://www.infoq.com/cn/news/2011/11/tyq-nodejs-static-file-server
 	awake : function(AppContext){
+		this.filterValue = this.auto_appConfig.staticFileFilters;
+
 		/*
 		var $CacheQueue=this.CacheQueue = new CacheQueue("页面缓存",true);
 		webHelper.scanProcess(appConfig.scanTpl,'.tpl',function(filePath){	
@@ -34,23 +39,13 @@ module.exports = {
 	fileMatch: /^(\.gif|\.png|\.jpg|\.js|\.css|\.html)$/ig,
     maxAge: 60 * 60 * 24 * 365,
 	
-	getFile : function(req,res){
-		var pathname = queryUrl.parse(req.url).pathname,
-			pathname = _path.normalize(pathname.replace(/\.\./g, ""));
-			realPath  = _path.join('.',pathname);
-		var isRead =false;
-		for(var i in this.auto_appConfig.staticPath){
+	//过滤成功后执行的回调
+	filterSuccessCallback : function(req,res,result){
+		debug("read static file : ",'[',req.url,']');
+	},
+	filterProcessor : function(req, res,AppContext,pathname){
 		
-			var checkPath = this.auto_appConfig.staticPath[i];
- 
-			if(pathname.indexOf(checkPath)==0){			
-				isRead =true;
-				break;
-			}
-		}
-
-		if(!isRead) return false;
-		
+		var realPath  = _path.join('.',pathname);		
 /*
 		if (stats.isDirectory()) {
 			realPath = path.join(realPath, "/", config.Welcome.file);
@@ -58,7 +53,7 @@ module.exports = {
 */
 		
 		if(!fs.existsSync(realPath)){		
-			return false;
+			return this.auto_requestResultConfig .failuer;
 		}	
 
 		var lastModified = fs.statSync(realPath).mtime.toUTCString();
@@ -68,7 +63,7 @@ module.exports = {
 		if (req.headers[ifModifiedSince] !=null && lastModified == req.headers[ifModifiedSince]) {
 			res.writeHead(304, "Not Modified");		
 			debug('write 304',realPath);
-			return true;
+			return this.auto_requestResultConfig.success;
 		}
 		var ext = _path.extname(realPath);
 		if (ext.match(this.fileMatch)) {
@@ -108,6 +103,6 @@ if (matched && acceptEncoding.match(/\bgzip\b/)) {
 }
 
 		*/
- 		return true;
+ 		return this.auto_requestResultConfig.success;
 	}
 };
