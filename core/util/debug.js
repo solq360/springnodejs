@@ -2,7 +2,7 @@
  * @author solq
  * @deprecated blog: cnblogs.com/solq
  * */
-var appConfig = require('../../config.js');
+var appConfig = require('../../config/AppConfig.js');
 module.exports = {
 	debug : function(){
 		(appConfig.LOGDEBUG & appConfig.LOGLEVEL) &&

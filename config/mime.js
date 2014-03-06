@@ -8,7 +8,7 @@ var mime = require('../plugs/mime/mime.js'),
 	_path = require('path'),
 	url =  require('url');
 module.exports  = {	
- 
+ /*
 	awakexx : function(){
 		var pathname='../../test.php.text.html';
 
@@ -18,7 +18,7 @@ module.exports  = {
 
 		var realPath = _path.join("assets", _path.normalize(pathname.replace(/\.\./g, "")));
 		debug('mime realPath:' ,realPath);	
-	},
+	},*/
 	lookup : function(path){
 		return mime.lookup(path);
 	},

@@ -5,17 +5,25 @@
 var http = require("http"),
 	fs = require("fs"),
 	_path = require("path"),	
- 	appConfig = require('./config.js'),
+ 	appConfig = require('./config/AppConfig.js'),
 	webHelper = require('./core/util/WebHelper.js'),
 	debug = require('./core/util/debug.js').debug,
 	_error = require('./core/util/debug.js').error,
 	requestController = require('./core/RequestController.js'),
 	AOP = require('./core/Aop.js'),
 	AppContext={
+		getKey : function(key){
+			key = key.trim();
+			key = key[0].toLowerCase() + key.substring(1,key.length);
+			return key;
+		},
 		findContainer : function(key){
+			key = this.getKey(key);
 			return this.data[key];
 		},
 		addContainer : function(id,container){
+			id = this.getKey(id);
+			container.id= id;
 			if(this.data[id]!=null ){
 				_error(" injection key is has : " ,id);
 				return;
@@ -48,9 +56,8 @@ var http = require("http"),
 var _injection = function(filePath,container){
 	var id = container.id;
 	if(id == null){
-		id =_path.basename(filePath).replace('.js','');
-		container.id = id;
-	}	
+		id =_path.basename(filePath).replace('.js','');			
+	} 	
 	container.filePath = filePath ; 	
 	AppContext.addContainer(id,container); 	
 	return container;
@@ -149,22 +156,25 @@ debug( "start init : =============================================");
 _init();
 debug( "end init : =============================================");
 
+function errorRequest(response,e){
+	response.writeHead(500, {"Content-Type": "text/plain;charset=utf-8"});
+	_error(e.stack,e);
+	response.write(e.stack);
+	response.end();
+}
+
 http.createServer(function(request, response) {
 
 	var result=null;
 	try{
 		 result=requestController.filter(request, response,AppContext);
 	}catch(e){	
-		response.writeHead(500, {"Content-Type": "text/plain;charset=utf-8"});
-		response.write(e);
-		response.end();
+		errorRequest(response,e);
 		return;
 	}
-	
-	//response.writeHead(200, {"Content-Type": "text/plain;charset=utf-8"});
-
+	//ws result
 	if(result!=null){
-	
+		response.writeHead(200, {"Content-Type": "text/plain;charset=utf-8"});
 		if(typeof result == 'string'){
 			response.write(result);
 		}else if(typeof result == 'object' 
@@ -173,12 +183,11 @@ http.createServer(function(request, response) {
 			try{
 				response.write(JSON.stringify(result));
 			}catch(e){
-				response.write(e);
+				errorRequest(response,e);
 			}			
 		}else{
 			response.write(result);
-		}
-		
+		}		
 	}
 	
 	response.end(); 

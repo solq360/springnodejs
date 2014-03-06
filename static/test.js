@@ -1,1 +1,1 @@
-alert('test load js')
+consoel.log('test load js')

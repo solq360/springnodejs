@@ -6,10 +6,8 @@ var fs = require('fs'),
 	queryUrl = require('url'),
 	_error = require('../core/util/debug.js').error;
 	debug = require('../core/util/debug.js').debug,
-	appConfig = require('../config.js'),
-	webHelper = require('../core/util/WebHelper.js'),
+ 	webHelper = require('../core/util/WebHelper.js'),
 	CacheQueue = require('../core/CacheQueue.js');
-
 	
 module.exports = {
 	 

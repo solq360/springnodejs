@@ -5,8 +5,7 @@
 var queryUrl = require("url"),
 	_path = require("path"),
 	queryString = require( "querystring" ),
-	appConfig = require('../config.js'),
-	debug = require('../core/util/debug.js').debug,
+ 	debug = require('../core/util/debug.js').debug,
 	_error = require('../core/util/debug.js').error,
 	dateConverter = require('../core/util/dateConverter.js');
 
@@ -18,9 +17,8 @@ var requestController={
 	//_paramData : {},
 	//_pathParamData : {},
 
-	auto_StaticFileService : null,
-
-	awake : function(AppContext){
+	auto_staticFileService : null,
+ 	awake : function(AppContext){
 		var $this=this;
 		AppContext.findInjectionOfType(['controller'],null,function(container){
 			$this.register(container);
@@ -229,7 +227,7 @@ var requestController={
 			return;
 		}
 		
-		if(this.auto_StaticFileService.getFile(request, response)){
+		if(this.auto_staticFileService.getFile(request, response)){
 			debug("read static file : ",'[',_url,']');
 			return;
 		}
