@@ -7,21 +7,15 @@ var fs = require('fs'),
 	queryUrl = require('url'),
 	_path = require('path'),
 	_error = require('../core/util/debug.js').error;
-	debug = require('../core/util/debug.js').debug,
-	CacheQueue = require('../core/CacheQueue.js');
+	debug = require('../core/util/debug.js').debug;
 
 	
 module.exports = {
-	auto_mime : null,
-	auto_appConfig : null,
-	auto_requestResultConfig : null,
-
-	CacheQueue : null,
-	
+ 	auto_appConfig : null,
+	auto_requestResultConfig : null, 	
 	injectionType : 'core',
   	filterProcessor : [],
-	_filterProcessor : {},
-	awake : function(AppContext){		
+ 	awake : function(AppContext){		
 		var $this=this;
 		AppContext.findInjectionOfType(['filter'],null,function(container){
 			$this.register(container);
