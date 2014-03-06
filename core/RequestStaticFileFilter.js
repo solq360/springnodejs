@@ -18,7 +18,7 @@ module.exports = {
 	CacheQueue : null,
 	injectionType : 'filter',
  	filterValue : null,	//拦截的url 起始标识
-	order : 0,
+	order : 1,
  	//http://www.infoq.com/cn/news/2011/11/tyq-nodejs-static-file-server
 	awake : function(AppContext){
 		this.filterValue = this.auto_appConfig.staticFileFilters;

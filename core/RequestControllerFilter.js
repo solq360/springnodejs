@@ -22,7 +22,7 @@ var requestController={
 	//_pathParamData : {},
 	injectionType : 'filter', //属于拦截服务
 	filterValue : null,	//拦截的url 起始标识
-	order : 1,
+	order : 2,
   	awake : function(AppContext){
 		
 		this.filterValue = this.auto_appConfig.webServiceFilters;

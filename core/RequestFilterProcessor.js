@@ -64,7 +64,7 @@ module.exports = {
 				continue;
 			}
 			
-			debug(" filter name ",_filter.filterValue);
+			debug(" filter name ",_filter.filterValue,pathname);
 			var result = _filter.filterProcessor(req,res,AppContext,pathname);
 			if(result!=null && result != this.auto_requestResultConfig.failuer){
 				_filter.filterSuccessCallback(req,res,result);

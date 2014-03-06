@@ -24,6 +24,7 @@ var appConfig={
 	/**web config**/	
 	startCacheStatic : true,
 	/**controller filter config**/	
+	welcomeFilters : ['\\','\\index.html','\\login.html'],
 	webServiceFilters : ['\\ws','\\api'],
 	staticFileFilters : ['\\static','\\abc'],
 	/**auto scan config**/	
