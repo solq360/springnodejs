@@ -42,9 +42,10 @@ git : https://github.com/solq360/springnodejs
 我在这里简单介绍一下几个核心概念。由于我本人水平也有限，对于程序的理念也只能在这水平，还没达到深层次，有什么错的请回馈下。
 
 IOC : 反转控制。
+--------------------
 
 传统写代码方式 如 ：
-
+```
 var a={
     b : {},
     c : {},
@@ -62,6 +63,7 @@ a.b = b.da;
 a.c = b.db;
 ....
 a.z = b.z
+```
 大家请思考，如果我要完成一个功能，需要七八个模块，每个模块平均要用到四五个服务/控制类，每个服务/控制 类又要用到 其它的 服务/控制 还有再加上三四个配置资源，到最后每个类都有一大堆的属于要初始化，整个项目共有二三十模块。
 
 如果让人去管理的话会疯掉，如果这些都用程序来管理，那是件多少轻松的事啊
@@ -69,7 +71,7 @@ a.z = b.z
 说真的至于 ioc怎么实义我也不了解概念，我不是学JAVA 的，我只知道他的存在至少帮我处理完以上的事件。
 
 那好，现在怎么用程序来做上面海量工作的事情呢？ 请看JS 简单实现 ioc
-
+```
 var ar=[];
 //容器 1
 var o1={
@@ -105,12 +107,13 @@ for(var i in ioc){
 }
 
 console.log(ioc,o1,o2)
+```
 没错，就是这么简单。每个容器都有自己的ID 标识，只要用来搜索定位，防止复盖。
 
 下面是项目的核心处理 AppContext 对象用来管理项目所有的容器，
 
 那么主有就几个工作方法 : 生成ID ，查找容器，注册容器，查找一堆相同类型容器 等 具体的规则请看代码实现吧
-
+```
 AppContext={
         getKey : function(key){
             key = key.trim();
@@ -151,7 +154,7 @@ AppContext={
         },
         data : {}
     }
- 
+```
 
 现在来说下注册容器一些流程：
 
@@ -166,7 +169,7 @@ AppContext={
 最后注入的条件是什么啊等等一大堆问题要处理，程序员就是命苦，生来解决这些的
 
 2.注入完成后，接下来就是自动注入属性，我用声明式标识来定义那些是可以注入的，请看示例
-
+```
 {
     auto_field1:null,
     auto_field3:null,
@@ -175,16 +178,17 @@ AppContext={
     auto_field6:null,
     auto_field20:null
 };
+```
 通过 auto_(容器ID)  来注入
 
 3.注入完了，我们来个初化始来完成自己准备工作
 
 大概流程可以抽象出三个方法
-
+```
 _scan();
 _auto_injection_field();
 _init();
- 
+ ```
 
  
 
@@ -199,7 +203,7 @@ _init();
 下面请看项目代码实现
 
 扫描配置 
-
+```
 var appConfig={
     /**auto scan config**/    
     scan :{
@@ -223,7 +227,7 @@ var appConfig={
         }
     } 
 };
- 
+ ```
 
 有没有注意到 injectionType 这个属于？
 
@@ -231,6 +235,7 @@ var appConfig={
 
 下面是项目实现 ioc 流程
 
+```
 var _injection = function(filePath,container){
     var id = container.id;
     if(id == null){
@@ -315,4 +320,5 @@ var _scan = function(){
 _scan();
 _auto_injection_field();
 _init();
+```
 好了，目前就写在这里
