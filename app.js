@@ -106,42 +106,44 @@ var _init = function(){
 		container.postConstruct!=null && container.postConstruct(AppContext);
 	}
 }
- 
+var _scan = function(){
+	webHelper.scanProcess(appConfig.scan,'.js',function(filePath,target){
+		var container=require(filePath); 
+		
+		//injectionType 查找过滤用的
+		
+		if(container.injectionType==null){
+			var injectionType= target.injectionType;
+			if(injectionType == null){
+				injectionType = 'service';
+			}
+			container.injectionType = injectionType;
+		}
+		
+		//add filter 过滤器
+		if(target.filter!=null){
+			container.filter = target.filter;
+		}
+		
+		var injectionType = container.injectionType ;
+		var id=_injection(filePath,container).id;
+		debug( "injection : ",'[',injectionType,']','[',id,']', filePath);
+	});
+}
+
+
 //IOC 控制流程
-// scanResource>scanService>scanController>scanAop
-// end scan auto injection field
-// injection aop
-// init run awake > start > postConstruct 
+//1.scan ioc
+
+//2.auto  injection field
+//3.init run
 
 debug( "start injection : =============================================");
-
-webHelper.scanProcess(appConfig.scan,'.js',function(filePath,target){
-	var container=require(filePath); 
-	
-	//injectionType 查找过滤用的
-	
-	if(container.injectionType==null){
-		var injectionType= target.injectionType;
-		if(injectionType == null){
-			injectionType = 'service';
-		}
-		container.injectionType = injectionType;
-	}
-	
-	//add filter 过滤器
-	if(target.filter!=null){
-		container.filter = target.filter;
-	}
-	
-	var injectionType = container.injectionType ;
-	var id=_injection(filePath,container).id;
- 	debug( "injection : ",'[',injectionType,']','[',id,']', filePath);
-});
+_scan();
 debug( "end injection : =========================================");
 debug( "=========================================");
 debug( "=========================================");
 debug( "=========================================");
-
 
 debug( "start injection field : =============================================");
 _auto_injection_field();
