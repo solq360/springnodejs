@@ -41,7 +41,7 @@ git : https://github.com/solq360/springnodejs
 
 我在这里简单介绍一下几个核心概念。由于我本人水平也有限，对于程序的理解也只能在这水平，还没达到深层次，有什么错的请回馈下。
 
-IOC : 反转控制。
+IOC : 反转控制
 --------------------
 
 传统写代码方式 如 ：
@@ -176,7 +176,10 @@ AppContext={
     auto_field4:null,
     auto_field5:null,
     auto_field6:null,
-    auto_field20:null
+    auto_field20:null,
+    postConstruct : function(){
+    	debug('init=========================================');
+    }
 };
 ```
 通过 auto_(容器ID)  来注入
@@ -321,4 +324,201 @@ _scan();
 _auto_injection_field();
 _init();
 ```
+AOP 拦截 面向切面编程
+--------------------
+第一次听说估计疯了吧，呵呵也包括我
+
+我先来引导一下：
+我们写的代码最终变成
+```
+a();
+b();
+c();
+d();
+```
+CPU从上往下读取执行，最小单位抽象为方法
+大家请思考一下，程序流是从上往下执行的，如果到了项目后期，要添加某些功能，变成如下这样，那我是不是得修改原来的文件啊，这样会破坏原来的代码，可能会产生未知的BUG，这是程序员最担心受怕的事
+```
+a();
+e();
+b();
+c();
+d();
+```
+以上代码如果变成
+```
+a();
+newFn =function(){
+	e();
+	b();
+}
+newFn();
+c();
+d();
+
+or
+
+
+newFn =function(){
+	a();
+	e();
+}
+newFn();
+b();
+c();
+d();
+```
+这样是不是不用破坏原来的代码啊？ 
+
+这就是面向切向编程，是的没什么高深的，找到执行的关键点，切入自己处理的逻辑，在切入点之前执行还是之后执行，甚至扩展抛异常执行等等
+------------
+这就是AOP的核心思想，我不明白所有的书籍为什么不会写中文？？
+
+如果你玩过window程序 钩子，是不是觉得有点似类？？
+还有一个应用是改变原来执行方法的输入参数/输出返回 这在数据类型转换应用很扩。举例:
+```
+var a = function(int a,Date b){
+	return int c;
+}
+
+newa=function(int a,string b){
+	b = Date.str2date(b);
+	var c=a(a,b);
+	return c+'';
+}
+
+aop.filter( if(call a?) call newa; );
+```
+
+我看过一些书籍，程序补丁就是这样玩的
+
+下面是项目aop实现代码 :
+
+先看AOP应用 :
+```
+module.exports = {	
+	before : {
+		'TestService.testAop' : function(originalFuncton,callObj,args){
+			console.log('aop this is testAop before ==================');
+			console.log('aop test this value',this.testFiled);
+			console.log('aop arguments : ',originalFuncton,args);
+		}
+	},
+	after : {		
+		'TestService.testAop' : function(){ //TestService 是要拦截的容器， testAop 是拦截的方法
+			console.log('aop this is testAop after ==================');			
+		}
+	},
+ 
+	'testFiled' :'testFiled',
+	postConstruct : function(){
+		console.log('aop postConstruct');
+	},
+	preDestroy  : function(){
+		console.log('preDestroy');
+	}
+};
+
+```
+
+aop核心JS
+```
+/**
+ * @author solq
+ * @deprecated blog: cnblogs.com/solq
+ * */
+var debug = require('../core/util/debug.js').debug,
+	_error = require('../core/util/debug.js').error;
+
+module.exports = {
+
+	awake : function(AppContext){
+		var $this=this;
+		AppContext.findInjectionOfType(null,null,function(container){
+			$this.register(container,AppContext);
+		});
+	},
+	//public
+	register : function(container,AppContext){
+		for(var key in container.before){ 
+			var filter = container.before[key];
+			this._aop(key,'before',filter,container, AppContext); 
+		}
+		
+		for(var key in container.after){
+			var filter = container.after[key];
+			this._aop(key,'after',filter,container,AppContext); 
+		}
+		
+		for(var key in container.error){
+			var filter = container.error[key];
+			this._aop(key,'error',filter,container,AppContext); 
+		}
+	},
+	
+	//private
+	_aop : function(key,aopType,filter,thisObj,AppContext){
+		var sp = key.split('.'),
+				id = sp[0],
+				fnName = key.substring(key.indexOf('.')+1, key.length );
+		var container=AppContext.findContainer(id);
+		if(container==null){
+			_error("aop not find container : ",key, " id :",id);
+			return;
+		}
+		
+		var originalFuncton =null;
+		try{
+			originalFuncton = eval('container.'+ fnName);
+		}catch(e){
+			_error(e);
+			_error("aop not find originalFuncton: ",key, " id :",id );
+			return;
+		}	
+ 		
+		if(originalFuncton==null){
+			_error("aop not find originalFuncton: ",key, " id :",id );
+			return;
+		}
+		
+		if(typeof originalFuncton!= "function"){
+			_error("aop originalFuncton is not function ",key, " id :",id );
+			return;
+		}		
+		
+		var newFuntion=null;
+		switch(aopType){
+			case 'error':
+				newFuntion=function(){
+					try{
+						originalFuncton.apply(container,arguments);
+					}catch(e){
+						filter.apply(thisObj,arguments);
+					}					
+				}
+			break;			
+			case 'after':
+				newFuntion=function(){
+					var result=originalFuncton.apply(container,arguments);
+					filter.apply(thisObj,arguments);
+					return result;
+				}
+			break;
+			case 'before':
+				newFuntion=function(){
+					//debug("originalFuncton : " , originalFuncton.toString());
+					var isCallFlag=filter.call(thisObj,originalFuncton,container,arguments);
+					
+					if(!isCallFlag){
+						return originalFuncton.apply(container,arguments);
+					}										
+				}
+			break;
+		}	
+		
+		container[fnName]=newFuntion;		
+	}
+};
+```
+
 好了，目前就写在这里
