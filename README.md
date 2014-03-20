@@ -4,8 +4,10 @@ springnodejs
 作者 : solq
 
 blog : 
-[http://www.cnblogs.com/solq/p/3574640.html
-[http://www.jiaotuhao.com/
+*http://www.cnblogs.com/solq/p/3574640.html
+*http://www.jiaotuhao.com/
+
+git : https://github.com/solq360/springnodejs
 
 1.只需要添加  ws Controller 文件就行,启动自动注入 Controller
 
@@ -23,7 +25,7 @@ blog :
 
 反正是就仿spring 那套
 
-git : https://github.com/solq360/springnodejs
+
 
 
 给自己打下广告 出售域名
@@ -603,9 +605,9 @@ http://www.jiaotuhao.com/test PUT 	(change data)
 http://www.jiaotuhao.com/test DELETE (delete data)
 ```
 
-[大家可能比较了解的是 post get 请求对吧，其实还有很多请求的，我不说你知道吗?
-[将这四种操作跟业务联系在一起，就变成以上这样了。
-[当然，你设计的URL 不一定按照上面规范，规则是死的人是活的
+*大家可能比较了解的是 post get 请求对吧，其实还有很多请求的，我不说你知道吗?
+*将这四种操作跟业务联系在一起，就变成以上这样了。
+*当然，你设计的URL 不一定按照上面规范，规则是死的人是活的
 
 下面再举个例子，带参数的
 ```
@@ -615,9 +617,9 @@ http://www.jiaotuhao.com/user/{id} POST 	(create data.id={id})
 http://www.jiaotuhao.com/user/{id} PUT 		(change data.id={id})
 http://www.jiaotuhao.com/user/{id} DELETE 	(delete data.id={id})
 ```
-[ID是数据唯一记录KEY,每种记录也可以看成是一种资源。
-[而 /user/ 可以看成是业务一种处理，或者是/user/ 子资源
-[这就是面向资源设计啊,如果还是觉得抽象，看看WINDOW 资源管理器
+*ID是数据唯一记录KEY,每种记录也可以看成是一种资源。
+*而 /user/ 可以看成是业务一种处理，或者是/user/ 子资源
+*这就是面向资源设计啊,如果还是觉得抽象，看看WINDOW 资源管理器
 
 如下是项目使用的例子，一开始想得不是太多，算是 0.1版吧
 ```
