@@ -4,6 +4,7 @@ springnodejs
 作者 : solq
 
 blog : http://www.cnblogs.com/solq/p/3574640.html
+		http://www.jiaotuhao.com/
 
 1.只需要添加  ws Controller 文件就行,启动自动注入 Controller
 
@@ -581,9 +582,78 @@ param_def_array_ 三种声明绑定一个属性 由于JS语言没有 java @注�
 大家思考一下 : 本来是为了减少程序复杂性用人工去硬写入绑定，如果在应用层大量用声明的话，绝对是苦力活。
 我看到有的UI框架把HTML做成声明式，那绝对是苦力活，本来用js 动态生成HTML 干掉HTML化，他反而要把功能声明依赖HTML 想到一个页面有多少个HTML标签就想死了
 
-REST 设计风格
+REST 设计风格 面向资源设计
 ------------
 
+设计的作者将世界每样东西都看成是一样资源
+对每种资源基本操作有:
+	 产生(create) ,变更(change) ,删除(delete),传播 (spread) 
+是不是有点像数据库 增删改查 操作啊
+
+那好，有这种概念，跟http有什么关系呢？
+
+一个 http url 地址就是一种资源，对每个 url 有四种基本操作
+
+```
+url							method
+http://www.jiaotuhao.com/test GET 	(get data)
+http://www.jiaotuhao.com/test POST 	(create data)
+http://www.jiaotuhao.com/test PUT 	(change data)
+http://www.jiaotuhao.com/test DELETE (delete data)
+```
+还有其它的 method
+大家可能比较了解的是 post get 请求对吧，其实还有很多请求的，我不说你知道吗?
+将这四种操作跟业务联系在一起，就变成以上这样了。
+当然，你设计的URL 不一定按照上面规范，规则是死的人是活的
+
+下面再举个例子，带参数的
+```
+url							method
+http://www.jiaotuhao.com/user/{id} GET 		(get data.id=={id})
+http://www.jiaotuhao.com/user/{id} POST 	(create data.id={id})
+http://www.jiaotuhao.com/user/{id} PUT 		(change data.id={id})
+http://www.jiaotuhao.com/user/{id} DELETE 	(delete data.id={id})
+```
+ID是数据唯一记录KEY,每种记录也可以看成是一种资源。
+ 而 /user/ 可以看成是业务一种处理，或者是/user/ 子资源
+这就是面向资源设计啊,如果还是觉得抽象，看看WINDOW 资源管理器
+
+如下是项目使用的例子，一开始想得不是太多，算是 0.1版吧
+```
+module.exports = {	
+	'/user':{
+		auth : [],//权限
+		methods : ['GET','POST'],
+		controller : function(request, response){
+			console.log("testpath",arguments);
+		}
+	},
+	'/user/{p1}/{p2}':{
+		auth : [],//权限
+		methods : ['GET'],
+		controller : function(path_int_p2,path_p1,param_p1,param_p2,body_xxx){
+			console.log("testpathParam",arguments);
+		}
+	}
+};
+```
+以后可能会改成这样
+```
+module.exports = {	
+	'delete:/user':{
+		auth : [],//权限
+ 		controller : function(request, response){
+			console.log("testpath",arguments);
+		}
+	},
+	'get|post:/user':{
+		auth : [],//权限
+ 		controller : function(request, response){
+			console.log("testpath",arguments);
+		}
+	} 
+};
+```
 
 
 好了，目前就写在这里
