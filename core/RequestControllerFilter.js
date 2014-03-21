@@ -83,7 +83,7 @@ var requestController={
 			result.checkPathGroup = checkPathGroup;
 		}
 		var injectionkey = ['path_','param_','body_','def_','auto_','int_','date_','array_','object_'];
-		var otherKey =['req','res','request', 'response','auto_'];
+		var otherKey =['req','res','request', 'response'];
 		for(var i in params){
 			var param = params[i],
 				name = param;
@@ -180,16 +180,16 @@ var requestController={
 			2 参数处理
 			3 注入外部上下文
 		*/
- 		for(var url in container){		
+ 		for(var sawUrl in container){		
 		
-			if(url=='id'){
+			if(sawUrl=='id'){
 				continue;
 			}
-			if(url.indexOf('auto_')==0){
+			if(sawUrl.indexOf('auto_')==0){
 				continue;
 			}
 		
-			var obj = container[url] ; 
+			var obj = container[sawUrl] ; 
 			
 			if( obj == null ){
 				continue;
@@ -202,18 +202,32 @@ var requestController={
 				continue;
 			}
  			
-			if(obj.methods==null || obj.methods.length==0){
-				obj.methods = ['GET'];				
+//			if(obj.methods==null || obj.methods.length==0){
+//				obj.methods = ['GET'];				
+//			}
+			
+			var methods=[],
+				url = null;
+			if(sawUrl.indexOf(':')<0){
+				methods=['get'];
+				url = sawUrl;
+			}else{
+				var _urlSplit= sawUrl.split(':');
+				methods=_urlSplit[0].split('|') ;
+				url = _urlSplit[1];
 			}
-			// get paramsMetadata 
-			obj.callObjId = container.id;
+ 
+			
+			// get paramsMetadata 			
 			var controller = obj.controller;
 			var params = this.getParamNames(controller);
 			var paramsMetadata = this.getParamMetadata(params,url);
+			var filter = container.filter;			
 			obj.paramsMetadata = paramsMetadata,
-				filter = container.filter ;
-  			for(var i in obj.methods){
-				var method = obj.methods[i];				
+			obj.callObjId = container.id;			
+			
+  			for(var i in methods){
+				var method = methods[i];				
 				var key = this.getKey(method,url,filter);					
 				
 				if(paramsMetadata.pathParamLength!=0 ){ //有路径变量

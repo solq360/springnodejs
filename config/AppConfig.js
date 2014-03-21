@@ -47,10 +47,10 @@ var appConfig={
 			//include : [],
 			exclude : ['./ws/test/test1.js']
 		},
-		'./api' : {
+		/*'./api' : {
 			filter : '\\api', //url 服务 过滤器
 			injectionType : 'controller'
-		}
+		}*/
 	} 
 };
 

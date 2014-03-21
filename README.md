@@ -557,13 +557,20 @@ module.exports = {
 ```
 也可以多种声明
 ```
-{
-	'/testpathParam/{p1}/{p2}':{
- 		controller : function(path_int_p2,path_p1,param_def_array_p1){
-			console.log("testpathParam",arguments);
+module.exports = {	
+	auto_cacheDate : null,
+	'delete:/user/{id}/{name}':{
+  		controller : function(path_name,path_id,req, res){
+  			this.auto_cacheDate="add data";
+			console.log("testpath",arguments);
 		}
-	}
-}
+	},
+	'get|post:/user':{
+  		controller : function(param_p1,param_def_array_p1,body_xxx){  			
+			console.log("testpath",arguments,this.auto_cacheDate);
+		}
+	} 
+};
 ```
 param_def_array_ 三种声明绑定一个属性 由于JS语言没有 java @注解 我只有能想到用 标识+_ 来做程序处理，看起来有点怪怪的哈哈
 上面这个是 REST 设计风格，下面会介绍的
@@ -588,7 +595,7 @@ param_def_array_ 三种声明绑定一个属性 由于JS语言没有 java @注�
 REST 设计风格 面向资源设计
 ------------
 
-* 设计的作者将世界每样东西都看成是一样资源
+* 设计的作者将世界每样东西都看成是一种资源
 * 对每种资源基本操作有:  产生(create) ,变更(change) ,删除(delete),传播 (spread) 
 
 是不是有点像数据库 增删改查 操作啊
@@ -620,26 +627,8 @@ http://www.jiaotuhao.com/user/{id} DELETE 	(delete data.id={id})
 * 而 /user/ 可以看成是业务一种处理，或者是/user/ 子资源
 * 这就是面向资源设计啊,如果还是觉得抽象，看看WINDOW 资源管理器
 
-如下是项目使用的例子，一开始想得不是太多，算是 0.1版吧
-```
-module.exports = {	
-	'/user':{
-		auth : [],//权限
-		methods : ['GET','POST'],
-		controller : function(request, response){
-			console.log("testpath",arguments);
-		}
-	},
-	'/user/{p1}/{p2}':{
-		auth : [],//权限
-		methods : ['GET'],
-		controller : function(path_int_p2,path_p1,param_p1,param_p2,body_xxx){
-			console.log("testpathParam",arguments);
-		}
-	}
-};
-```
-以后可能会改成这样
+如下是项目使用的例子 :请跟 express 对比一下
+
 ```
 module.exports = {	
 	'delete:/user':{
@@ -657,5 +646,50 @@ module.exports = {
 };
 ```
 
+```
+module.exports = {	
+	cacheData : null,
+	'get:/user/{id}/{name}':{
+  		controller : function(path_name,path_id,req, res){
+  			this.cacheData="add data";
+			console.log("testpath",arguments);
+		}
+	},
+	'get|post:/user':{
+  		controller : function(param_int_p1,param_array_p2,body_xxx){  			
+			console.log("testpath",arguments,this.cacheData);
+		}
+	} 
+};
+```
+'get:/user/{id}/{name}' 真实请求路径 http://www.jiaotuhao.com/ws/user/bbb/ccc 
+ws 是拦截服务的标识，在那里配置呢?
+
+appconfig.js filter 属性
+```
+scan :{
+	'./ws' : {
+		filter : '\\ws', //url 服务 过滤器
+		injectionType : 'controller',
+		//include : [],
+		exclude : ['./ws/test/test1.js']
+	},
+	'./api' : {
+		filter : '\\api', //url 服务 过滤器
+		injectionType : 'controller'
+	}
+} 
+```
+为什么要加个/ws/前缀标识呢？ 不同的服务可能处理不同，这时候只要添加相应的拦截器就满足不同的处理
+比如 api 服务，他可能不需要权限验证就可以访问
+
+* path_(pathKey) 就会自动将你想要的值注入了
+* param_ 自动会将 http://www.jiaotuhao.com/ws/user/bbb/ccc?p1=2332&p2=kkk p1参数注入
+* body_ 会将?p1=2332&p2=kkk 变成 json={p1:2332,p2:'kkk'}注入
+* int_ array_ date_ 等，数据类型转换
+
+上面这些工作，程序都帮你弄好了。做出来的程序是为别人服务的，为什么不能先为自己服务呢？
+
+实际结合声明式开发+自动注入
 
 好了，目前就写在这里
