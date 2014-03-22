@@ -65,6 +65,7 @@ var requestController={
 			paramLength : 0,
 			checkParamLength : 0,
 			otherLength : 0 ,
+			sync : true,
 			sawPath : url ,
 			checkPath : checkPath,
 			sawGroup : sawGroup,
@@ -83,7 +84,7 @@ var requestController={
 			result.checkPathGroup = checkPathGroup;
 		}
 		var injectionkey = ['path_','param_','body_','def_','auto_','int_','date_','array_','object_'];
-		var otherKey =['req','res','request', 'response'];
+		var otherKey ={'req':1,'res':1,'request':1, 'response':1,'callback':1};
 		for(var i in params){
 			var param = params[i],
 				name = param;
@@ -117,12 +118,15 @@ var requestController={
 			
 			//映射类型处理
 			
-			if(otherKey.indexOf(param)>-1){
+			if(otherKey[param] != null ){
 				metadata.mapType = 'other';
 				result.otherLength++;
 				if(result.otherData[name]!=null)
 					_error('ParamMetadata register is Has: ',param, url);					
 				
+				if('callback' == param){
+					result.sync = false;
+				}
 				result.otherData[name] = metadata;
 				continue;
 			}
@@ -244,26 +248,29 @@ var requestController={
 		}		
  	},	
 		//过滤成功后执行的回调
-	filterSuccessCallback : function(req,res,result){
+	filterSuccessCallback : function(req,res,body,statu){
 		res.writeHead(200, {"Content-Type": "text/plain;charset=utf-8"});
-
-		if(result!= this.auto_requestResultConfig.success ){
-			if(typeof result == 'string'){
-				res.write(result);
-			}else if(typeof result == 'object' 
-				|| Array.isArray(result)
+		if(body!= null){
+			if(typeof body == 'string'){
+				res.write();
+			}else if(typeof body == 'number'	){
+				res.write(body+"");
+			}else if(typeof body == 'object' 
+				|| Array.isArray(body)
 			){
 				try{
-					res.write(JSON.stringify(result));
+					res.write(JSON.stringify(body));
 				}catch(e){
 					res.writeHead(500, {"Content-Type": "text/plain;charset=utf-8"});
 					_error(e.stack,e);
 					res.write(e.stack);
  				}			
 			}else{
-				res.write(result);
+				res.write(body);
 			}		
 		}
+		body = null;
+		res.end();
 		debug("controller filter : ",'[',req.url,']');
 	},
 	
@@ -292,7 +299,7 @@ var requestController={
 			
 		if(_filter==null ){
 			_error('not find controller : ' ,key);			
-			return this.auto_requestResultConfig.failuer;
+			return this.auto_requestResultConfig.failuerValueOf();
 		} 
 		
 		var  queryParams = _filter.queryParams;
@@ -302,7 +309,7 @@ var requestController={
 			var flag = queryParams[key];
 			if(queryObj[key]==null && flag){				
 				_error(' params is not : ',queryParams,'[',_url,']','[',_filter.callObjId,']');
-				return this.auto_requestResultConfig.failuer;
+				return this.auto_requestResultConfig.failuerValueOf();
 			}
 		}
 		//param is right			
@@ -315,7 +322,8 @@ var requestController={
 			resultMap = {},
 			callObjId = _filter.callObjId,
  			controller = _filter.controller,
-			paramsMetadata = _filter.paramsMetadata;
+			paramsMetadata = _filter.paramsMetadata,
+			sync = paramsMetadata.sync;
 		 
 		for(var name in paramsMetadata.pathParamData){
 			var metadata = paramsMetadata.pathParamData[name];
@@ -352,15 +360,13 @@ var requestController={
 		}
 		//debug('callObjId ==============',callObjId);
 		//debug('callParams ==============',callParams);
-		var result = controller.apply(callObj,callParams);
-		
-		//返回假成功
-		if(result == null){
-			return this.auto_requestResultConfig.success;
+		//debug(" sync ===========================",sync);
+		var result = controller.apply(callObj,callParams); 
+		if(sync){
+			return this.auto_requestResultConfig.successValueOf(result);
+		}else{			
+			return this.auto_requestResultConfig.callbackValueOf();
 		}
-		
-		return result;
-		 		
 	},
 	
 	
@@ -425,8 +431,10 @@ var requestController={
 			break;
 			case 'other' :
 				//debug(value," other value +++++++++++");
-				var otherKey ={'req':request,'res':response,'request':request, 'response':response};
+				var $this = this;
+				var otherKey ={'req':request,'res':response,'request':request, 'response':response ,'callback' : function(result){ $this.filterSuccessCallback(request,response,result) ;} };
 				value = otherKey[name];
+				otherKey = null;
 			break;
 		}
 		if(value!=null ){

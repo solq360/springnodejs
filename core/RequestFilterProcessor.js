@@ -60,11 +60,18 @@ module.exports = {
 			
 			debug(" filter name ",_filter.filterValue,pathname);
 			var result = _filter.filterProcessor(req,res,AppContext,pathname);
-			if(result!=null && result != this.auto_requestResultConfig.failuer){
-				_filter.filterSuccessCallback(req,res,result);
-				return ;
-			}
 			
+			if(result!=null){
+				var statu= result.statu;
+				
+				if(statu == this.auto_requestResultConfig.success){
+					_filter.filterSuccessCallback!=null && 
+					_filter.filterSuccessCallback(req,res,result.body,statu);
+					return ;
+				}else if (statu == this.auto_requestResultConfig.callback){		 
+					return ;
+				}
+			}		
 		
 		}
 		

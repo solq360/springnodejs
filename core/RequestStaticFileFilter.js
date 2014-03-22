@@ -41,6 +41,7 @@ module.exports = {
 	
 	//过滤成功后执行的回调
 	filterSuccessCallback : function(req,res,result){
+		res.end();
 		debug("read static file : ",'[',req.url,']');
 	},
 	filterProcessor : function(req, res,AppContext,pathname){
@@ -53,7 +54,7 @@ module.exports = {
 */
 		
 		if(!fs.existsSync(realPath)){		
-			return this.auto_requestResultConfig .failuer;
+			return this.auto_requestResultConfig .failuerValueOf();
 		}	
 
 		var lastModified = fs.statSync(realPath).mtime.toUTCString();
@@ -63,7 +64,7 @@ module.exports = {
 		if (req.headers[ifModifiedSince] !=null && lastModified == req.headers[ifModifiedSince]) {
 			res.writeHead(304, "Not Modified");		
 			debug('write 304',realPath);
-			return this.auto_requestResultConfig.success;
+			return this.auto_requestResultConfig.successValueOf();
 		}
 		var ext = _path.extname(realPath);
 		if (ext.match(this.fileMatch)) {
@@ -103,6 +104,7 @@ if (matched && acceptEncoding.match(/\bgzip\b/)) {
 }
 
 		*/
- 		return this.auto_requestResultConfig.success;
+ 
+ 		return this.auto_requestResultConfig.successValueOf();
 	}
 };

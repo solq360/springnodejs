@@ -24,9 +24,10 @@ module.exports = {
 	//过滤成功后执行的回调
 	filterSuccessCallback : function(req,res,result){
 		debug("read static file : ",'[',req.url,']');
+		res.end();
 	},
 	filterProcessor : function(req, res,AppContext,pathname){		
-		if(pathname=='\\' || pathname=='\\')
+		if(pathname=='\\' || pathname=='')
 			pathname = "\\index.html";
 		return this.auto_requestStaticFileFilter.filterProcessor(req, res,AppContext,pathname);
  	}

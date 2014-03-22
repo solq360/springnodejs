@@ -10,19 +10,21 @@ blog :
 
 git : https://github.com/solq360/springnodejs
 
-1.只需要添加  ws Controller 文件就行,启动自动注入 Controller
+* 1.只需要添加  ws Controller 文件就行,启动自动注入 Controller
 
-2.path 路径参数，请求参数自动注入
+* 2.path 路径参数，请求参数自动注入
 
-3.请求参数格式转换，可扩展转换类型
+* 3.请求参数格式转换，可扩展转换类型
 
-4.容器变量字段自动注入
+* 4.容器变量字段自动注入
 
-5.容器初始化执行
+* 5.容器初始化执行
 
-6.aop 实现方法拦截
+* 6.aop 实现方法拦截
 
-7.url 拦截分发
+* 7.url 拦截分发
+
+* 8.controller 添加回调处理
 
 反正是就仿spring 那套
 
@@ -682,5 +684,55 @@ scan :{
 上面这些工作，程序都帮你弄好了。做出来的程序是为别人服务的，为什么不能先为自己服务呢？
 
 实际结合声明式开发+自动注入
+
+REST CALLBACK 添加回调处理
+------------
+
+下面项目举例
+
+```
+module.exports = {	
+	value :'xxxxx',
+	'/aio':{	//注入 callback 回调方法，一定要调用才结束
+  		controller : function(req, res,callback){
+			var $this = this;
+			console.log("sync" , this.value);
+			setTimeout(function(){
+				console.log("sync end ================",$this.value);		 
+				callback(5555555);	//执行回调
+				console.log("sync end ================",$this.value);				
+			},2000);
+		}
+	}
+};
+```
+
+上面只要在 controller 参数声明 callback 在结束时调用一下就完成工作
+我大概说下流程
+1.在程序预处理时，扫描 controller 参数，发现 callback 声明标识 标记该 controller.sync = false
+2.url拦截完成时，进行参数注入，通过 controller.sync 进行处理
+3.通过拦载成功，执行 拦载器 filterSuccessCallback 方法
+
+下面是核心代码
+
+```
+//注入处理
+
+var otherKey ={'req':request,'res':response,'request':request, 'response':response ,'callback' : function(result){ $this.filterSuccessCallback(request,response,result) ;} };
+otherKey[param];
+
+var sync = paramsMetadata.sync;
+var result = controller.apply(callObj,callParams); 
+if(sync){
+	return this.auto_requestResultConfig.successValueOf(result);
+}else{			
+	return this.auto_requestResultConfig.callbackValueOf();
+}
+
+```
+
+大家可能会觉得很模糊，只需要知道怎么调用就行了
+以后会介绍一下 url 拦载器，怎么处理url拦截分发的
+
 
 好了，目前就写在这里

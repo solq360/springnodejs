@@ -133,8 +133,7 @@ var _scan = function(){
 
 
 //IOC 控制流程
-//1.scan ioc
-
+//1.scan 
 //2.auto  injection field
 //3.init run
 
@@ -168,14 +167,11 @@ function errorRequest(response,e){
 }
 
 http.createServer(function(request, response) {
-
+	//响应流由拦截器内部关闭
 	try{
 		 requestFilterProcessor.filter(request, response,AppContext);
 	}catch(e){	
 		errorRequest(response,e);
 		return;
-	}
-	
-	response.end(); 
-  
+	}  
 }).listen(appConfig.webPort);
