@@ -252,7 +252,7 @@ var requestController={
 		res.writeHead(200, {"Content-Type": "text/plain;charset=utf-8"});
 		if(body!= null){
 			if(typeof body == 'string'){
-				res.write();
+				res.write(body);
 			}else if(typeof body == 'number'	){
 				res.write(body+"");
 			}else if(typeof body == 'object' 
