@@ -675,9 +675,9 @@ scan :{
 比如 api 服务，他可能不需要权限验证就可以访问
 
 * path_(pathKey) 就会自动将你想要的值注入了
-* param_ 自动会将 http://www.jiaotuhao.com/ws/user/bbb/ccc?p1=2332&p2=kkk p1参数注入
-* body_ 会将?p1=2332&p2=kkk 变成 json={p1:2332,p2:'kkk'}注入
-* int_ array_ date_ 等，数据类型转换
+* param_ 将 http://www.jiaotuhao.com/ws/user/bbb/ccc?p1=2332&p2=kkk p1参数注入
+* body_ 将?p1=2332&p2=kkk 变成 json={p1:2332,p2:'kkk'}注入
+* int_ array_ date_ 数据类型转换
 
 上面这些工作，程序都帮你弄好了。做出来的程序是为别人服务的，为什么不能先为自己服务呢？
 
