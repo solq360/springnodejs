@@ -6,6 +6,7 @@ springnodejs
 blog : 
 * http://www.cnblogs.com/solq/p/3574640.html
 * http://www.jiaotuhao.com/
+* http://www.springnodejs.com/
 
 git : https://github.com/solq360/springnodejs
 
