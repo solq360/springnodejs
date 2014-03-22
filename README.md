@@ -709,9 +709,9 @@ module.exports = {
 
 上面只要在 controller 参数声明 callback 在结束时调用一下就完成工作
 我大概说下流程
-1.在程序预处理时，扫描 controller 参数，发现 callback 声明标识 标记该 controller.sync = false
-2.url拦截完成时，进行参数注入，通过 controller.sync 进行处理
-3.通过拦载成功，执行 拦载器 filterSuccessCallback 方法
+* 1.在程序预处理时，扫描 controller 参数，发现 callback 声明标识 标记该 controller.sync = false
+* 2.url拦截完成时，进行参数注入，通过 controller.sync 进行处理
+* 3.通过拦载成功，执行 拦载器 filterSuccessCallback 方法
 
 下面是核心代码
 
