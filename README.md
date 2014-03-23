@@ -754,7 +754,7 @@ fn1(function(){
 ```
 var v1= callback_fn1();
 var v2= callback_fn2(v1);
-var v3= callback_fn2(v2);
+var v3= callback_fn3(v2);
 
 //以上是程序未运行时的代码
 //通过拦截进行改写
