@@ -734,5 +734,172 @@ if(sync){
 大家可能会觉得很模糊，只需要知道怎么调用就行了
 以后会介绍一下 url 拦载器，怎么处理url拦截分发的
 
+AOP 增强实战
+------------
+很多人觉得AOP很少用到，其实原理的东西看似简单/复杂，但深入理解后，应用非常之扩
+通过本例将见证改变 程序员(js)的书写方式，给人印象非常深刻
+哈哈，首先还是通过引导。见下面js例子
+```
+fn1(function(){
+	fn2(function(){
+		fn3(function(){
+			fn4();
+			.....
+		});
+	});
+});
+```
+写过JS的人都知道上面的代码是多头痛，第二次看肯定有想死的感觉
+假如代码变成这样
+```
+var v1= callback_fn1();
+var v2= callback_fn2(v1);
+var v3= callback_fn2(v2);
+
+//以上是程序未运行时的代码
+//通过拦截进行改写
+
+//第一次改写
+var v1= callback_fn1(function(v1){
+	var v2= callback_fn2(v1);
+	var v3= callback_fn3(v2);
+});
+//第二次改写
+var v1= callback_fn1(function(v1){
+	var v2= callback_fn2(function(v2){
+		var v3= callback_fn3(v2);
+	});
+});
+//第三次改写 最终代码变成这样
+var v1= callback_fn1(function(v1){
+	var v2= callback_fn2(function(v2){
+		var v3= callback_fn3(function(v2){
+			 
+		});
+	});
+});
+
+```
+我们书写的代码是同步的，相通上面介绍声明式开发，在异步的方法添加标识，程序预处理时自动改写代码，是不是很酷啊。
+下面是项目简单实现，因为改写规则太多，要完善的话要花很多精力。
+
+首先添加个 异步的方法
+testEnhance.js
+```
+module.exports = {	 
+	callback_test1 : function(callback){
+		var result = ' callback_test1 result value';
+		setTimeout(function(){
+			callback!=null && callback(result);
+		},10000);
+	}
+};
+```
+示例代码
+```
+module.exports = {	
+	auto_testEnhance : null,
+	start : function(){
+		var value = this.auto_testEnhance.callback_test1();
+		var value2 = this.auto_testEnhance.callback_test1();
+		
+		console.log(" test callback1 ===================", value);
+		console.log(" test callback2 ===================", value2);
+	}	 
+};
+```
+
+aop 增强核心
+我先说下处理流程
+
+* 1 先扫描 function 代码
+* 2 注入增强代码
+* 3 重写原来方法
+
+流程有了，那么可以抽象出三个方法
+_scanCode();
+_injectionCode();
+_overrideFunction();
+
+```
+/**
+ * @author solq
+ * @deprecated blog: cnblogs.com/solq
+ * */
+var debug = require('../core/util/debug.js').debug,
+	_error = require('../core/util/debug.js').error;
+
+module.exports = {
+	injectionType : 'aop',
+	awake : function(AppContext){
+		var $this=this;
+		var container=AppContext.findContainer('TestCallback');
+		//AppContext.findInjectionOfType(null,['aop'],function(container){		
+			$this.register(container);
+		//});
+	},
+	//public
+	register : function(container){
+		for(var key in container){  			
+			var fn = container[key];
+			if(typeof fn != 'function'){
+				continue;
+			}
+			this._aop(key,fn,container); 
+		}		 
+	},
+	scanMarker : 'callback_',
+	//private
+	_aop : function(fnName,fn,container){ 
+		//scan code
+		//injection code
+		//overrideFunction 		
+		var codestring = this._scanCode(fn);
+ 		if(codestring.indexOf( this.scanMarker) <0 ){
+			return;
+		}
+		var new_codestring = this._injectionCode(codestring);	 
+		var newFuntion = this._overrideFunction(new_codestring);		
+		container[fnName]=newFuntion;		
+	},	
+	
+	_scanCode : function(fn){
+		var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg; 
+		var code=fn.toString().replace(STRIP_COMMENTS, '');
+		return code.substring(code.indexOf('{')+1, code.lastIndexOf('}'));
+		//return code.slice(code.indexOf('{')+1, code.lastIndexOf('}')).match(/([^\n,]+)/g).filter(function(e){return e});
+	},
+	_injectionCode : function(codestring){
+		var _injection_start ="var __$this = this;";
+ 		var _injection_end ="})";
+ 
+		var i = 0 ;
+		codestring = codestring.replace(/(var\s+(.*)\=.*callback_[^)]+)(.*)/mg,function(a,b,c,d){
+			//debug("codestring replace ==============",a," b====== ",b," c=============== ",c, " d============== ",d);
+			i++;
+			var _injection_code ="(function("+c+"){";
+			var result =a.replace("\(\)",_injection_code);
+			//debug("result ====================",result);
+			return result;
+		});
+		
+		while(i>0){
+			i--;
+			codestring += _injection_end;			
+		}
+		
+		//replace this
+		codestring = codestring.replace(/this\s*\./mg,'__$this.');
+		codestring = _injection_start + codestring;
+		
+		debug("new code ==============",codestring);
+		return codestring;
+	},
+	_overrideFunction : function(new_codestring){
+		return new Function(new_codestring);
+	},
+};
+```
+哈哈，我是不是牛啊？
 
 好了，目前就写在这里

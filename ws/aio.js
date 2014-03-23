@@ -20,7 +20,29 @@ module.exports = {
  				console.log("sync end",$this.value);
 			},2000);
 			
-			return " sync end";
+			
+ 			return " sync end";
 		}
+	},
+	'/sleep':{
+  		controller : function(req, res,callback){
+			this.sleep(15000);
+			return " sleep end";
+		}
+	},
+	
+	
+	//private 
+	sleep : function(milliSecond) {
+     
+		var startTime = new Date().getTime();
+		 
+		console.log(startTime);
+		 
+		while(new Date().getTime() <= milliSecond + startTime) {
+			 
+		}
+		 
+		console.log(new Date().getTime());
 	}
 };
