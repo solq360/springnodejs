@@ -74,7 +74,8 @@ module.exports = {
 			}		
 		
 		}
-		
+		//404
+		res.end();
 		debug("not find filter ");
 
 	}

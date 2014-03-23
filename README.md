@@ -773,7 +773,7 @@ var v1= callback_fn1(function(v1){
 //第三次改写 最终代码变成这样
 var v1= callback_fn1(function(v1){
 	var v2= callback_fn2(function(v2){
-		var v3= callback_fn3(function(v2){
+		var v3= callback_fn3(function(v3){
 			 
 		});
 	});

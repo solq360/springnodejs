@@ -205,11 +205,7 @@ var requestController={
 			if(obj.controller==null){			
 				continue;
 			}
- 			
-//			if(obj.methods==null || obj.methods.length==0){
-//				obj.methods = ['GET'];				
-//			}
-			
+ 						
 			var methods=[],
 				url = null;
 			if(sawUrl.indexOf(':')<0){
