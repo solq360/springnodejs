@@ -4,6 +4,7 @@
  * */
 var debug = require('../core/util/debug.js').debug,
 	_error = require('../core/util/debug.js').error;
+var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg; 
 
 module.exports = {
 	injectionType : 'aop',
@@ -34,13 +35,20 @@ module.exports = {
  		if(codestring.indexOf( this.scanMarker) <0 ){
 			return;
 		}
-		var new_codestring = this._injectionCode(codestring);	 
-		var newFuntion = this._overrideFunction(new_codestring);		
+ 		var new_codestring = this._injectionCode(codestring);
+		var params = this.getParamNames(fn);
+		var newFuntion = this._overrideFunction(new_codestring,params);		
 		container[fnName]=newFuntion;		
-	},	
-	
-	_scanCode : function(fn){
-		var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg; 
+		
+ 	},	
+	getParamNames : function(func) {
+		var fnStr = func.toString().replace(STRIP_COMMENTS, '')
+		var result = fnStr.slice(fnStr.indexOf('(')+1, fnStr.indexOf(')')).match(/([^\s,]+)/g)
+		if(result === null)
+		 result = []
+		return result
+	},
+	_scanCode : function(fn){		
 		var code=fn.toString().replace(STRIP_COMMENTS, '');
 		return code.substring(code.indexOf('{')+1, code.lastIndexOf('}'));
 		//return code.slice(code.indexOf('{')+1, code.lastIndexOf('}')).match(/([^\n,]+)/g).filter(function(e){return e});
@@ -50,11 +58,21 @@ module.exports = {
  		var _injection_end ="})";
  
 		var i = 0 ;
-		codestring = codestring.replace(/(var\s+(.*)\=.*callback_[^)]+)(.*)/mg,function(a,b,c,d){
+		codestring = codestring.replace(/var\s+(.*)\=.*callback_[^\)]+(.*)/mg,function(a,b,c,d){
 			//debug("codestring replace ==============",a," b====== ",b," c=============== ",c, " d============== ",d);
-			i++;
-			var _injection_code ="(function("+c+"){";
-			var result =a.replace("\(\)",_injection_code);
+			i++;	
+ 			
+			var _injection_code ="function("+b+"){";
+ 			var result =a.replace(/\((.*)\)/,function(pa,pb){
+				var r ;
+				if(pb.trim()==''){
+					r = "("+_injection_code;
+				}else{
+					r = "("+pb+","+_injection_code;
+				}
+				//debug("new params =========",r);
+				return r;
+			});
 			//debug("result ====================",result);
 			return result;
 		});
@@ -71,7 +89,10 @@ module.exports = {
 		debug("new code ==============",codestring);
 		return codestring;
 	},
-	_overrideFunction : function(new_codestring){
-		return new Function(new_codestring);
+	_overrideFunction : function(new_codestring,params){
+		if(params.length==0){
+			return new Function(new_codestring);
+		}		
+		return new Function(params,new_codestring);
 	},
 };
