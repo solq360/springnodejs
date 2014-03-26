@@ -5,7 +5,6 @@
 var debug = require('../core/util/debug.js').debug,
 	_error = require('../core/util/debug.js').error;
 var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg; 
-
 module.exports = {
 	injectionType : 'aop',
 	awake : function(AppContext){
@@ -35,20 +34,24 @@ module.exports = {
  		if(codestring.indexOf( this.scanMarker) <0 ){
 			return;
 		}
- 		var new_codestring = this._injectionCode(codestring);
+		var new_codestring = this._injectionCode(codestring);
 		var params = this.getParamNames(fn);
-		var newFuntion = this._overrideFunction(new_codestring,params);		
-		container[fnName]=newFuntion;		
-		
- 	},	
+		var newFuntion = this._overrideFunction(new_codestring,params);     
+		container[fnName]=newFuntion;     
+		container[fnName].apply(container,params);
+	},	
+	/**
+	* 获得方法参数
+	* */
 	getParamNames : function(func) {
 		var fnStr = func.toString().replace(STRIP_COMMENTS, '')
 		var result = fnStr.slice(fnStr.indexOf('(')+1, fnStr.indexOf(')')).match(/([^\s,]+)/g)
 		if(result === null)
-		 result = []
-		return result
+		result = []
+		return result;
 	},
-	_scanCode : function(fn){		
+	_scanCode : function(fn){
+		var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg; 
 		var code=fn.toString().replace(STRIP_COMMENTS, '');
 		return code.substring(code.indexOf('{')+1, code.lastIndexOf('}'));
 		//return code.slice(code.indexOf('{')+1, code.lastIndexOf('}')).match(/([^\n,]+)/g).filter(function(e){return e});
@@ -57,30 +60,25 @@ module.exports = {
 		var _injection_start ="var __$this = this;";
  		var _injection_end ="})";
  
-		var i = 0 ;
-		codestring = codestring.replace(/var\s+(.*)\=.*callback_[^\)]+(.*)/mg,function(a,b,c,d){
+	//	var i = 0 ;
+		codestring = codestring.replace(/(var\s+(.*)\=.*callback_[^)]+)(.*)/mg,function(a,b,c,d){
 			//debug("codestring replace ==============",a," b====== ",b," c=============== ",c, " d============== ",d);
-			i++;	
- 			
-			var _injection_code ="function("+b+"){";
- 			var result =a.replace(/\((.*)\)/,function(pa,pb){
-				var r ;
-				if(pb.trim()==''){
-					r = "("+_injection_code;
-				}else{
-					r = "("+pb+","+_injection_code;
-				}
-				//debug("new params =========",r);
-				return r;
-			});
+			//i++;
+			var _injection_code ="(function("+c+"){";
+			var result =a.replace("\(\)",_injection_code);
 			//debug("result ====================",result);
 			return result;
 		});
-		
-		while(i>0){
-			i--;
-			codestring += _injection_end;			
-		}
+			
+	  //第一版本替换
+	  /*
+	  while(i>0){
+	   i--;
+	   codestring += _injection_end;     
+	  }*/
+	  //第二版本替换
+	  codestring = codestring.replace(/await\s*\:/mg,'');
+	  codestring = codestring.replace(/endawait\s*;/mg,_injection_end);
 		
 		//replace this
 		codestring = codestring.replace(/this\s*\./mg,'__$this.');
@@ -92,7 +90,7 @@ module.exports = {
 	_overrideFunction : function(new_codestring,params){
 		if(params.length==0){
 			return new Function(new_codestring);
-		}		
+		}     
 		return new Function(params,new_codestring);
-	},
+	}
 };

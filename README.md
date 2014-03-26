@@ -587,8 +587,6 @@ param_def_array_ 三种声明绑定一个属性 由于JS语言没有 java @注�
 大家思考一下 : 本来是为了减少程序复杂性用人工去硬写入绑定，如果在应用层大量用声明的话，绝对是苦力活。
 我看到有的UI框架把HTML做成声明式，那绝对是苦力活，本来用js 动态生成HTML 干掉HTML化，他反而要把功能声明依赖HTML 想到一个页面有多少个HTML标签就想死了
 
-
-
 REST 设计风格 面向资源设计
 ------------
 
@@ -804,11 +802,15 @@ module.exports = {
 module.exports = {	
 	auto_testEnhance : null,
 	start : function(){
-		var value = this.auto_testEnhance.callback_test1();
-		var value2 = this.auto_testEnhance.callback_test1();
-		
-		console.log(" test callback1 ===================", value);
-		console.log(" test callback2 ===================", value2);
+		await:
+			var value = this.auto_testEnhance.callback_test1();
+			await:
+				var value2 = this.auto_testEnhance.callback_test1();
+				
+				console.log(" test callback1 ===================", value);
+				console.log(" test callback2 ===================", value2);
+			endawait;
+		endawait;
 	}	 
 };
 ```
@@ -832,7 +834,7 @@ _overrideFunction();
  * */
 var debug = require('../core/util/debug.js').debug,
 	_error = require('../core/util/debug.js').error;
-
+var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg; 
 module.exports = {
 	injectionType : 'aop',
 	awake : function(AppContext){
@@ -877,21 +879,23 @@ module.exports = {
 		var _injection_start ="var __$this = this;";
  		var _injection_end ="})";
  
-		var i = 0 ;
-		codestring = codestring.replace(/(var\s+(.*)\=.*callback_[^)]+)(.*)/mg,function(a,b,c,d){
+ 		codestring = codestring.replace(/(var\s+(.*)\=.*callback_[^)]+)(.*)/mg,function(a,b,c,d){
 			//debug("codestring replace ==============",a," b====== ",b," c=============== ",c, " d============== ",d);
-			i++;
-			var _injection_code ="(function("+c+"){";
+ 			var _injection_code ="(function("+c+"){";
 			var result =a.replace("\(\)",_injection_code);
 			//debug("result ====================",result);
 			return result;
 		});
 		
-		while(i>0){
-			i--;
-			codestring += _injection_end;			
-		}
-		
+	  //第一版本替换
+	  /*
+	  while(i>0){
+	   i--;
+	   codestring += _injection_end;     
+	  }*/
+	  //第二版本替换
+	  codestring = codestring.replace(/await\s*\:/mg,'');
+	  codestring = codestring.replace(/endawait\s*;/mg,_injection_end);
 		//replace this
 		codestring = codestring.replace(/this\s*\./mg,'__$this.');
 		codestring = _injection_start + codestring;
