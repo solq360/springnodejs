@@ -1,5 +1,9 @@
 springnodejs
 ============
+如果觉得还行，请我喝瓶水
+[![Gittip](https://img.alipay.com/sys/personalprod/style/mc/btn-index.png)](http://me.alipay.com/solq)
+
+
 
 作者 : solq
 
@@ -909,3 +913,6 @@ module.exports = {
 };
 ```
 好了，目前就写在这里
+
+如果觉得还行，请我喝瓶水
+[![Gittip](https://img.alipay.com/sys/personalprod/style/mc/btn-index.png)](http://me.alipay.com/solq)
