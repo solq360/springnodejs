@@ -18,7 +18,7 @@ module.exports = {
 		http.createServer(function(request, response) {
 			//响应流由拦截器内部关闭
 			try{
-				$this.auto_requestFilterProcessor.filter(request, response,auto_appContext);
+				$this.auto_requestFilterProcessor.filter(request, response,$this.auto_appContext);
 			}catch(e){	
 				$this.errorRequest(response,e);
  			}  
