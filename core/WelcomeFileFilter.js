@@ -29,6 +29,9 @@ module.exports = {
 	filterProcessor : function(req, res,AppContext,pathname){		
 		if(pathname=='\\' || pathname=='')
 			pathname = "\\index.html";
+		else{
+			return this.auto_requestResultConfig.failuerValueOf();
+		}
 		return this.auto_requestStaticFileFilter.filterProcessor(req, res,AppContext,pathname);
  	}
 };

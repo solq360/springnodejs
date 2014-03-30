@@ -4,10 +4,10 @@
  * */
 
 module.exports  = {
-	'failuer' : 'failuer',
-	'success' : 'success',
-	'callback' : 'callback',
-	
+	'failuer' : 'failuer',	//过滤失败
+	'success' : 'success',	//过滤成功
+	'callback' : 'callback',//过滤成功 并且属于 callback
+	'filterProcess' : 'filterProcess',	//只是拦截处理,似类于中间件
 	//返回封装
 	
 	'failuerValueOf' :function(body){
@@ -18,5 +18,8 @@ module.exports  = {
 	},
 	'callbackValueOf' :function(callback){
 		return { statu : 'callback' , body : callback }
+	},
+	'filterProcessValueOf' :function(callback){
+		return { statu : 'filterProcess' , body : callback }
 	}
 };

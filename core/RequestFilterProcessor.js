@@ -36,6 +36,7 @@ module.exports = {
 	filter : function(req,res,AppContext){
 		var _url = req.url;
 		if( _url == '/favicon.ico'){
+			res.end();
 			return;
 		}
 		
@@ -64,13 +65,20 @@ module.exports = {
 			if(result!=null){
 				var statu= result.statu;
 				
-				if(statu == this.auto_requestResultConfig.success){
-					_filter.filterSuccessCallback!=null && 
-					_filter.filterSuccessCallback(req,res,result.body,statu);
-					return ;
-				}else if (statu == this.auto_requestResultConfig.callback){		 
-					return ;
-				}
+				switch(statu){
+					case this.auto_requestResultConfig.success: 
+						_filter.filterSuccessCallback!=null && 
+						_filter.filterSuccessCallback(req,res,result.body,statu);
+						return ;
+					break;
+					case this.auto_requestResultConfig.callback: 
+						return ;
+					break;
+					case this.auto_requestResultConfig.filterProcess: 
+						_filter.filterSuccessCallback!=null && 
+						_filter.filterSuccessCallback(req,res,result.body,statu);
+					break;
+				}				 
 			}		
 		
 		}
