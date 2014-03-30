@@ -12,7 +12,7 @@ module.exports={
 	register : function(key,fn){
 		this._data[key]=fn;
 	},
-	start : function(){
+	run : function(){
 		if(this._isStart) return;
 		this._isStart = true;	
 		
@@ -37,12 +37,15 @@ module.exports={
 					callBack();
 				}				
 				return;
-			}			
+			}
+				
+			/*
 			switch(commonds[0]){
 				case 'exit':
 					process.exit(0);	
 					break;
 			}
+			*/
 		});
 
 		process.on('exit', function(code) {
