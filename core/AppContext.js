@@ -11,84 +11,84 @@ var http = require("http"),
 	_error = require('../core/util/debug.js').error;
  
 var  AppContext={
-		auto_console : null,
-		_isStart : false,
-		runServer : function(){
+	auto_console : null,
+	_isStart : false,
+	runServer : function(){
+	
+		if(this._isStart) return;
+		this._isStart = true;	
+		//IOC 控制流程
+		//1.scan 
+		//2.auto  injection field
+		//3.init run
+
+		debug( "start injection : =============================================");
+		_scan();
+		debug( "end injection : =========================================");
+		debug( "=========================================");
+		debug( "=========================================");
+
+		debug( "start injection field : =============================================");
+		_auto_injection_field();
+		debug( "end injection field : =============================================");
+
+		debug( "=========================================");
+		debug( "=========================================");
+
+		//init run
+		debug( "start init : =============================================");
+		_init();
+		debug( "end init : =============================================");
 		
-			if(this._isStart) return;
-			this._isStart = true;	
-			//IOC 控制流程
-			//1.scan 
-			//2.auto  injection field
-			//3.init run
-
-			debug( "start injection : =============================================");
-			_scan();
-			debug( "end injection : =========================================");
-			debug( "=========================================");
- 			debug( "=========================================");
-
-			debug( "start injection field : =============================================");
-			_auto_injection_field();
-			debug( "end injection field : =============================================");
-
-			debug( "=========================================");
-			debug( "=========================================");
- 
-			//init run
-			debug( "start init : =============================================");
-			_init();
-			debug( "end init : =============================================");
-			
-			//register console commond
-			
-			this.auto_console.register("close_server",function(){
-				//trigger close server event
-				_end();
- 				process.exit(0);			
-				debug( "close_server : =============================================");
-			});
-			this.auto_console.run();
-		},
-		findContainer : function(key){
-			key = this.getKey(key);
-			return this.data[key];
-		},
-		addContainer : function(id,container){
-			id = this.getKey(id);
-			container.id= id;
-			if(this.data[id]!=null ){
-				_error(" injection key is has : " ,id);
-				return;
+		//register console commond
+		
+		this.auto_console.register("close_server",function(){
+			//trigger close server event
+			_end();
+			process.exit(0);			
+			debug( "close_server : =============================================");
+		});
+		this.auto_console.run();
+	},
+	findContainer : function(key){
+		key = this.getKey(key);
+		return this.data[key];
+	},
+	addContainer : function(id,container){
+		id = this.getKey(id);
+		container.id= id;
+		if(this.data[id]!=null ){
+			_error(" injection key is has : " ,id);
+			return;
+		}
+		this.data[id] = container;
+	},
+	findInjectionOfType : function(include,exclude,callBack){
+		for(var i in this.data){
+			var container = this.data[i];
+			if(container.injectionType==null){
+				continue;
 			}
-			this.data[id] = container;
-		},
-		findInjectionOfType : function(include,exclude,callBack){
-			for(var i in this.data){
-				var container = this.data[i];
-				if(container.injectionType==null){
-					continue;
-				}
-				var injectionType = container.injectionType;
-				
-				if(include!=null && include.indexOf(injectionType)<0){
-					continue;
-				}
-				
-				if(exclude!=null && exclude.indexOf(injectionType)>-1){
-					continue;
-				}
-				
-				callBack(container);	
+			var injectionType = container.injectionType;
+			
+			if(include!=null && include.indexOf(injectionType)<0){
+				continue;
 			}
-		},
-		getKey : function(key){
-			key = key.trim();
-			key = key[0].toLowerCase() + key.substring(1,key.length);
-			return key;
-		},
-		data : {}
-	};
+			
+			if(exclude!=null && exclude.indexOf(injectionType)>-1){
+				continue;
+			}
+			
+			callBack(container);	
+		}
+	},
+	getKey : function(key){
+		key = key.trim();
+		key = key[0].toLowerCase() + key.substring(1,key.length);
+		return key;
+	},
+	data : {}
+};
  
  //处理功能方法
 var _injection = function(filePath,container){
@@ -176,7 +176,5 @@ var _end = function(){
 		container.preDestroy!=null && container.preDestroy(AppContext);	 
 	}
 }
-
-
 	
 module.exports = AppContext;

@@ -12,7 +12,7 @@ module.exports = {
 	auto_appContext : null,
  	injectionType : 'core',
  
- 	startServer : function(){
+ 	runServer : function(){
 		 
 		$this = this;
 		http.createServer(function(request, response) {
