@@ -220,9 +220,10 @@ var requestController={
 			
 			// get paramsMetadata 			
 			var controller = obj.controller;
-			var params = this.getParamNames(controller);
-			var paramsMetadata = this.getParamMetadata(params,url);
 			var filter = container.filter;			
+			var params = this.getParamNames(controller);
+			var paramsMetadata = this.getParamMetadata(params,filter.replace("\\","/")+url);
+ 			
 			obj.paramsMetadata = paramsMetadata,
 			obj.callObjId = container.id;			
 			
@@ -281,15 +282,17 @@ var requestController={
 		if(path.lastIndexOf('/') == path.length &  path.length!=1){
 			path =  path.substring(0, path.length - 1);
 		}
-
+		var splitPath = "\\";
+		if(path.indexOf("\\")<0){
+			splitPath = "/";
+		}
 		var key=this.getKey(method,path),
-			groupPath = path.split("/").filter(function(e){return e}) ;
+			groupPath = path.split(splitPath).filter(function(e){return e}) ;
 		//TODO
 		//auth check		
 	
  		var _filter= this._urlData[key]; 		
-
-		if(_filter==null ){
+ 		if(_filter==null ){
 			_filter = this.findPathFilter(this._pathData,groupPath);
 		}
 			
@@ -368,6 +371,7 @@ var requestController={
 	
  	//private function	
 	findPathFilter : function(data,groupPath){
+ 
 		var _ar = data[groupPath.length];
 		
 		if(_ar==null) return null;

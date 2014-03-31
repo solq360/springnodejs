@@ -1,6 +1,6 @@
 {
   "name": "springnodejs",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "springnodejs",
   "main": "app.js",
   "scripts": {
