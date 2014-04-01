@@ -1,0 +1,1 @@
+/** * @author solq * @deprecated blog: cnblogs.com/solq * *///公共异常global.Exception = { 		ERROR_MAX_SESSION : -1,	//同一账号超过最大绑定SESSION			valueOf : function(msg,code){		return {msg : msg , code : code};	}};
