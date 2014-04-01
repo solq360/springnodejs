@@ -15,6 +15,8 @@ var requestController={
 
 	auto_requestResultConfig : null,
 	auto_appConfig : null,
+	auto_cookie : null,
+	auto_sessionManager : null,
 	
 	_urlData : {},
 	_pathData : {},
@@ -84,7 +86,7 @@ var requestController={
 			result.checkPathGroup = checkPathGroup;
 		}
 		var injectionkey = ['path_','param_','body_','def_','auto_','int_','date_','array_','object_'];
-		var otherKey ={'req':1,'res':1,'request':1, 'response':1,'callback':1};
+		var otherKey ={'req':1,'res':1,'request':1, 'response':1,'callback':1,'cookie':1,'session':1};
 		for(var i in params){
 			var param = params[i],
 				name = param;
@@ -220,10 +222,9 @@ var requestController={
 			
 			// get paramsMetadata 			
 			var controller = obj.controller;
-			var filter = container.filter;			
 			var params = this.getParamNames(controller);
-			var paramsMetadata = this.getParamMetadata(params,filter.replace("\\","/")+url);
- 			
+			var paramsMetadata = this.getParamMetadata(params,url);
+			var filter = container.filter;			
 			obj.paramsMetadata = paramsMetadata,
 			obj.callObjId = container.id;			
 			
@@ -246,6 +247,8 @@ var requestController={
  	},	
 		//过滤成功后执行的回调
 	filterSuccessCallback : function(req,res,body,statu){
+		var cookies = res.cookie.valueOf();
+		res.setHeader('Set-Cookie',cookies);
 		res.writeHead(200, {"Content-Type": "text/plain;charset=utf-8"});
 		if(body!= null){
 			if(typeof body == 'string'){
@@ -282,17 +285,15 @@ var requestController={
 		if(path.lastIndexOf('/') == path.length &  path.length!=1){
 			path =  path.substring(0, path.length - 1);
 		}
-		var splitPath = "\\";
-		if(path.indexOf("\\")<0){
-			splitPath = "/";
-		}
+
 		var key=this.getKey(method,path),
-			groupPath = path.split(splitPath).filter(function(e){return e}) ;
+			groupPath = path.split("/").filter(function(e){return e}) ;
 		//TODO
 		//auth check		
 	
  		var _filter= this._urlData[key]; 		
- 		if(_filter==null ){
+
+		if(_filter==null ){
 			_filter = this.findPathFilter(this._pathData,groupPath);
 		}
 			
@@ -371,7 +372,6 @@ var requestController={
 	
  	//private function	
 	findPathFilter : function(data,groupPath){
- 
 		var _ar = data[groupPath.length];
 		
 		if(_ar==null) return null;
@@ -410,6 +410,42 @@ var requestController={
 			mapType = metadata.mapType,
 			required = metadata.required,
 			value=null;
+			
+		var $this = this;
+		if(response.cookie == null){
+			response.cookie ={
+				cookieData :  $this.auto_cookie.parse( (request.headers.cookie || '') )  ,
+				
+				set : function(key , value , opt){
+					this.cookieData[key]={
+						value : value,
+						opt : opt
+					};
+				},
+				get : function(key){
+					var cookie = this.cookieData[key];
+					if(cookie == null)
+						return null;
+						
+					return cookie.value;
+				},
+				remove : function(key){
+					this.set(key,null,{
+						expires : -1
+					});							
+				},
+				valueOf : function(){
+					var result =[];
+ 					for( var key in this.cookieData){
+						var cookie = this.cookieData[key];
+						var str = $this.auto_cookie.serialize(key, cookie.value, cookie.opt);						
+						result.push(str) ;
+ 					}
+					 
+					return result;
+				}
+			};
+		}
 		switch(mapType){
 			case 'param' :
 				value = queryObj[name];
@@ -430,11 +466,30 @@ var requestController={
 				value = queryObj;
 			break;
 			case 'other' :
-				//debug(value," other value +++++++++++");
-				var $this = this;
-				var otherKey ={'req':request,'res':response,'request':request, 'response':response ,'callback' : function(result){ $this.filterSuccessCallback(request,response,result) ;} };
-				value = otherKey[name];
-				otherKey = null;
+				//debug(value," other value +++++++++++");			
+				switch(name){
+					case 'callback' : 						
+						value = function(result){ $this.filterSuccessCallback(request,response,result) ;};
+					break;
+					case 'session' : 						
+						var sid = response.cookie.get(SessionKey.uuid);
+						var session = $this.auto_sessionManager.getSession(sid);
+						if(session == null){
+							//TODO throw
+							_error('injectionParam session is null : ',sid);
+						}
+						value = session;
+					break;
+					case 'cookie' :					
+						value = response.cookie ;
+					break;
+					default :
+						var otherKey ={'req':request,'res':response,'request':request, 'response':response};
+						value = otherKey[name];
+						otherKey = null;
+					break;
+				}
+				
 			break;
 		}
 		if(value!=null ){

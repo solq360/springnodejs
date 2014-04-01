@@ -13,6 +13,7 @@ module.exports = {
 		this.initSessionGCProcessor();
 		this.intiSessionHeartbeatProcessor();
 		//test
+		/*
 		try{
 			this.createSession(56565);
 			this.createSession(56565);
@@ -23,7 +24,7 @@ module.exports = {
 			this.createSession(56565);
 		}catch(er){
 			debug(er);
-		}		
+		}	*/	
 		//debug("createSession =====",this._data);
 	},		
 	_data : {},	//保存会话
@@ -61,18 +62,18 @@ module.exports = {
 			setAttr : function(key,value){  this._attr[key] = value; return this; }, 	//设置属性
 			write : function(msg){ this._msg.push(msg); },								//输入准备推送的消息
 			getAndPushMsg : function(){ var result = this._msg; this._msg = []; return  result; }, //获取并且推送消息
-			close : function(){ this.setAttr(Sessionkey.state,0); }, 					//关闭会话
-			destory : function(){ this.setAttr(Sessionkey.state,-1); }, 				//销毁会话
+			close : function(){ this.setAttr(SessionKey.state,0); }, 					//关闭会话
+			destory : function(){ this.setAttr(SessionKey.state,-1); }, 				//销毁会话
 			replace : function(session){ var allAttr =session.getAllAttr() ; for(var key in allAttr) this._attr[key] ==null && this._attr[key]=allAttr[key];  }, //替换会话
 			refreshLastTime : function(){ 												//刷新最后访问时间
-				this.setAttr(Sessionkey.lastTime,new Date())
-					.setAttr(Sessionkey.state,1);
+				this.setAttr(SessionKey.lastTime,new Date())
+					.setAttr(SessionKey.state,1);
 			}, 
 			init : function(bid){ //初始化
 				this
-					.setAttr(Sessionkey.lastTime,new Date())
-					.setAttr(Sessionkey.bind,bid)
-					.setAttr(Sessionkey.state,1);
+					.setAttr(SessionKey.lastTime,new Date())
+					.setAttr(SessionKey.bind,bid)
+					.setAttr(SessionKey.state,1);
 			},
 		};
 		session.init(bid);
@@ -96,7 +97,7 @@ module.exports = {
 			session.destory();
 			delete this._data[id];
 			//删除绑定
-			var bid = session.getAttr(Sessionkey.bind);			
+			var bid = session.getAttr(SessionKey.bind);			
 			if(this._bind[bid]!=null){
 				var index = this._bind[bid].indexOf(id);
 				//debug("remove bid: ================",bid ," index : ",index);
@@ -121,8 +122,8 @@ module.exports = {
 			//find remove
 			for(var i in $this._data){
 				var session = $this._data[i],
-					state = session.getAttr(Sessionkey.state),
-					lastTime = session.getAttr(Sessionkey.lastTime);				
+					state = session.getAttr(SessionKey.state),
+					lastTime = session.getAttr(SessionKey.lastTime);				
 				if( (lastTime.getTime()+time ) < now ){
 					removeSessions.push( session.id );
 				}			 			
