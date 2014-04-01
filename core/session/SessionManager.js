@@ -77,6 +77,7 @@ module.exports = {
 		};
 		session.init(bid);
 		this._data[session.id] = session;
+		return session;
 	},
 	//替换会话
 	replaceSession : function(source,target){
