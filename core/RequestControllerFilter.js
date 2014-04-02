@@ -247,8 +247,10 @@ var requestController={
  	},	
 		//过滤成功后执行的回调
 	filterSuccessCallback : function(req,res,body,statu){
-		var cookies = res.cookie.valueOf();
-		res.setHeader('Set-Cookie',cookies);
+		if(res.cookie!=null){
+			var cookies = res.cookie.valueOf();
+			res.setHeader('Set-Cookie',cookies);
+		}
 		res.writeHead(200, {"Content-Type": "text/plain;charset=utf-8"});
 		if(body!= null){
 			if(typeof body == 'string'){
