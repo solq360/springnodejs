@@ -8,9 +8,11 @@ springnodejs
 作者 : solq
 
 blog : 
-* http://www.cnblogs.com/solq/p/3574640.html
+* http://www.cnblogs.com/solq/
 * http://www.jiaotuhao.com/
 * http://www.springnodejs.com/
+* http://example.springnodejs.com/
+* http://rawcache.springnodejs.com/
 
 git : https://github.com/solq360/springnodejs
 

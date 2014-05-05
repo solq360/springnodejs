@@ -1,6 +1,6 @@
 {
   "name": "springnodejs",
-  "version": "0.0.1",
+  "version": "0.0.5",
   "description": "springnodejs",
   "main": "app.js",
   "scripts": {
@@ -12,9 +12,16 @@
   },
   "keywords": [
     "springnodejs",
-    "springjs"
+    "springjs",
+    "spring",
+    "rest",
+    "ioc",
+    "aop"
   ],
   "author": "solq",
   "license": "GNU",
-  "readmeFilename": "README.md"
+  "bugs": {
+    "url": "https://github.com/solq360/springnodejs/issues"
+  },
+  "homepage": "https://github.com/solq360/springnodejs"
 }
